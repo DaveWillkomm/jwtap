@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+require 'erb'
+
+access_handler_path = File.expand_path '../lib/jwtap/access_handler.rb', __dir__
+destination_path = File.expand_path '../nginx/conf/nginx.conf', __dir__
+source_path = File.expand_path '../nginx/conf/nginx.conf.erb', __dir__
+
+source_string = File.read source_path
+erb = ERB.new source_string
+erb_result = erb.result
+
+destination_file = File.open destination_path, 'w'
+destination_file.write erb_result
+destination_file.close

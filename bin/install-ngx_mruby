@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -ev
+
+rm -fr vendor/ngx_mruby
+mkdir -p vendor/ngx_mruby
+git clone https://github.com/matsumoto-r/ngx_mruby.git vendor/ngx_mruby
+cd vendor/ngx_mruby
+
+# Add mruby-jwt
+sed -i.bak "s/^end$/  conf.gem :github => 'prevs-io\/mruby-jwt'\\
+end/" build_config.rb
+
+sh build.sh
+make install

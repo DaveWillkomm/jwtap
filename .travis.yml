@@ -1,0 +1,7 @@
+language: ruby
+
+before_script:
+- source .env.test
+- bin/generate-conf
+- bin/install-ngx_mruby
+- bin/nginx
