@@ -1,2 +1,2 @@
-# jwt-auth-proxy
+# jwtap
 JSON Web Token Authentication Proxy
