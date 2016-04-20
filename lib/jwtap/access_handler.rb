@@ -42,7 +42,7 @@ def login_url(var)
 end
 
 def next_url(var)
-  port = %w(80 443).include?(var.server_port) ? '' : ":#{var.server_port}"
+  port = %w(80 443).include?(var.server_port) ? nil : ":#{var.server_port}"
   next_url = if var.request_method == 'GET'
     "#{var.scheme}://#{var.host}#{port}#{var.request_uri}"
   else
