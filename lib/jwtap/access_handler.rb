@@ -18,15 +18,6 @@ def cookies(var)
   Hash[var.http_cookie.split(';').map { |s| s.split('=').map(&:strip) }] if var.http_cookie
 end
 
-def decode(var, jwt)
-  payload, _header = JWT.decode jwt, var.jwtap_secret_key, true, algorithm: var.jwtap_algorithm
-  payload
-end
-
-def encode(var, payload)
-  JWT.encode payload, var.jwtap_secret_key, var.jwtap_algorithm
-end
-
 def fail_request(var, request, invalidToken = true)
   if var.jwtap_proxy_type == 'application'
     Nginx.redirect login_url(var)
@@ -59,7 +50,7 @@ def process(var, request)
 
   if jwt
     begin
-      payload = decode var, jwt
+      payload, _header = JWT.decode jwt, var.jwtap_secret_key, true, algorithm: var.jwtap_algorithm
       fail_request var, request unless payload['exp']
       refreshed_jwt = refresh var, payload
 
