@@ -1,0 +1,86 @@
+worker_processes  1;
+
+error_log  logs/error.log  debug;
+
+events {
+    worker_connections  256;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    server {
+        listen       <%= ENV['NGINX_SERVER_PORT'] %>;
+        server_name  <%= ENV['NGINX_SERVER_NAME'] %>;
+
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+        set $jwtap_algorithm "<%= ENV['JWTAP_ALGORITHM'] %>";
+        set $jwtap_cookie_domain "<%= ENV['JWTAP_COOKIE_DOMAIN'] %>";
+        set $jwtap_cookie_name "<%= ENV['JWTAP_COOKIE_NAME'] %>";
+        set $jwtap_expiration_duration_seconds "<%= ENV['JWTAP_EXPIRATION_DURATION_SECONDS'] %>";
+        set $jwtap_login_url "<%= ENV['JWTAP_LOGIN_URL'] %>";
+        set $jwtap_secret_key "<%= ENV['JWTAP_SECRET_KEY'] %>";
+
+        location <%= ENV['NGINX_LOCATION_TEST_API'] %> {
+          mruby_access_handler <%= access_handler_path %>;
+          proxy_pass http://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
+        }
+
+        location <%= ENV['NGINX_LOCATION_TEST_APPLICATION'] %> {
+          set $jwtap_proxy_type application;
+          set $jwtap_default_next_url <%= ENV['JWTAP_DEFAULT_NEXT_URL'] %>;
+
+          mruby_access_handler <%= access_handler_path %>;
+          proxy_pass http://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
+        }
+
+        location /test-proxy/ {
+          root html;
+        }
+
+        location /set-cookie {
+          mruby_content_handler_code '
+            var = Nginx::Var.new
+            expiration = (Time.now + var.jwtap_expiration_duration_seconds.to_i).to_i
+            jwt = JWT.encode({ "exp" => expiration }, var.jwtap_secret_key, var.jwtap_algorithm)
+            response_headers = Nginx::Headers_out.new
+
+            response_headers["Content-Type"] = "text/plain"
+            response_headers["Set-Cookie"] = "#{var.jwtap_cookie_name}=#{jwt}; Domain=#{var.jwtap_cookie_domain};"
+
+            Nginx::rputs "Cookie set"
+          ';
+        }
+
+        location /delete-cookie {
+          mruby_content_handler_code '
+            response_headers = Nginx::Headers_out.new
+            var = Nginx::Var.new
+
+            response_headers["Content-Type"] = "text/plain"
+            response_headers["Set-Cookie"] =
+              "#{var.jwtap_cookie_name}=; Domain=#{var.jwtap_cookie_domain}; Expires=Thu, 01-Jan-1970 00:00:00 GMT;"
+
+            Nginx::rputs "Cookie deleted"
+          ';
+        }
+    }
+}

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -e
+
+vendor/ngx_mruby/build/nginx/sbin/nginx -p nginx "$@"
