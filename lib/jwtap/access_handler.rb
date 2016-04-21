@@ -15,7 +15,7 @@ def cookie(var)
 end
 
 def cookies(var)
-  Hash[var.http_cookie.split(';').map { |s| s.split('=').map(&:strip) }] if var.http_cookie
+  Hash[var.http_cookie.split('; ').map { |s| s.split('=', 2) }] if var.http_cookie
 end
 
 def fail_request(var, request, invalidToken = true)
