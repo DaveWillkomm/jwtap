@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
 set -ev
 
-rm -fr vendor/ngx_mruby
-mkdir -p vendor/ngx_mruby
-git clone https://github.com/matsumoto-r/ngx_mruby.git vendor/ngx_mruby
-cd vendor/ngx_mruby
+source .ngx_mruby-version
+
+# Get ngx_mruby
+rm -fr vendor/v*.tar.gz vendor/ngx_mruby-*
+cd vendor
+wget https://github.com/matsumoto-r/ngx_mruby/archive/v$NGX_MRUBY_VERSION.tar.gz
+tar xf v$NGX_MRUBY_VERSION.tar.gz
+cd ngx_mruby-$NGX_MRUBY_VERSION
 
 # Add mruby-jwt
 sed -i.bak "s/^end$/  conf.gem :github => 'prevs-io\/mruby-jwt'\\
 end/" build_config.rb
 
-sh build.sh
+# Work around Makefile build_mruby using git to revert changes to mruby/build_config.rb
+git init
+git add mruby/build_config.rb
+
+# Build
+NGINX_CONFIG_OPT_ENV="--prefix=${1:-`pwd`/build/nginx}" sh build.sh
+
+# Install
 make install

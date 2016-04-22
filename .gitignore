@@ -1,3 +1,4 @@
 nginx/conf/nginx.conf
 nginx/logs/*.*
-vendor
+vendor/ngx_mruby-*/
+vendor/v*.tar.gz

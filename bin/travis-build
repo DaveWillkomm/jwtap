@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# See https://docs.travis-ci.com/user/triggering-builds/.
+# You must log into Travis CI (travis login), generate an authorization token (travis token), and set it to the
+# TRAVIS_TOKEN environment variable to use this script.
+curl \
+  --data '{"request": {"branch": "master"}}' \
+  --header "Authorization: token $TRAVIS_TOKEN" \
+  --header "Content-Type: application/json" \
+  --header "Travis-API-Version: 3" \
+  https://api.travis-ci.org/repo/dinosaurjr10%2Fjwtap/requests
