@@ -33,12 +33,12 @@ script that runs in the context of [Nginx](http://nginx.org/) + [ngx_mruby](http
 http {
   server {
     # mruby-jwt currently only supports HS256
-    set $jwtap_algorithm HS256
-    set $jwtap_cookie_domain example.com
-    set $jwtap_cookie_name jwt
-    set $jwtap_expiration_duration_seconds 1800
-    set $jwtap_login_url https://accounts.example.com/login/
-    set $jwtap_secret_key "Shh! It's a secret."
+    set $jwtap_algorithm HS256;
+    set $jwtap_cookie_domain example.com;
+    set $jwtap_cookie_name jwt;
+    set $jwtap_expiration_duration_seconds 1800;
+    set $jwtap_login_url https://accounts.example.com/login/;
+    set $jwtap_secret_key "Shh! It's a secret.";
 
     # A web API location.
     location /api/ {
