@@ -18,11 +18,11 @@ def cookies(var)
   Hash[var.http_cookie.split('; ').map { |s| s.split('=', 2) }] if var.http_cookie
 end
 
-def fail_request(var, request, invalidToken = true)
+def fail_request(var, request, invalid_token = true)
   if var.jwtap_proxy_type == 'application'
     Nginx.redirect login_url(var)
   else
-    error = invalidToken ? 'error="invalid_token", ' : nil
+    error = invalid_token ? 'error="invalid_token", ' : nil
     request.headers_out['WWW-Authenticate'] = %Q(Bearer #{error}login_url="#{var.jwtap_login_url}")
     Nginx.return  Nginx::HTTP_UNAUTHORIZED
   end
