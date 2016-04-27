@@ -3,23 +3,36 @@ set -ev
 
 source .ngx_mruby-version
 
-# Get ngx_mruby
-rm -fr vendor/v*.tar.gz vendor/ngx_mruby-*
+# Clean
 cd vendor
-wget https://github.com/matsumoto-r/ngx_mruby/archive/v$NGX_MRUBY_VERSION.tar.gz
-tar xf v$NGX_MRUBY_VERSION.tar.gz
-cd ngx_mruby-$NGX_MRUBY_VERSION
+rm -fr ngx_mruby-*
 
-# Add mruby-jwt
+# Get source
+wget -O - https://github.com/matsumoto-r/ngx_mruby/archive/v$NGX_MRUBY_VERSION.tar.gz | tar xzf -
+
+# Add mruby-jwt gem
+cd ngx_mruby-${NGX_MRUBY_VERSION}
 sed -i.bak "s/^end$/  conf.gem :github => 'prevs-io\/mruby-jwt'\\
 end/" build_config.rb
+
+# Set config options
+if [ -z ${NGINX_CONFIG_OPT} ]; then
+  NGINX_CONFIG_OPT_ENV="--prefix=$(pwd)/build/nginx --with-http_ssl_module"
+
+  if [ $(which brew) ]; then
+    brew update
+    brew install openssl || 0
+    OPENSSL_PATH=$(brew --prefix openssl)
+    NGINX_CONFIG_OPT_ENV+=" --with-cc-opt=-I${OPENSSL_PATH}/include --with-ld-opt=-L${OPENSSL_PATH}/lib"
+  fi
+fi
 
 # Work around Makefile build_mruby using git to revert changes to mruby/build_config.rb
 git init
 git add mruby/build_config.rb
 
 # Build
-NGINX_CONFIG_OPT_ENV="--prefix=${1:-`pwd`/build/nginx}" sh build.sh
+NGINX_CONFIG_OPT_ENV="${NGINX_CONFIG_OPT_ENV}" sh build.sh
 
 # Install
 make install
