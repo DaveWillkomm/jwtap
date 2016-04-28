@@ -16,7 +16,7 @@ sed -i.bak "s/^end$/  conf.gem :github => 'prevs-io\/mruby-jwt'\\
 end/" build_config.rb
 
 # Set config options
-if [ -z ${NGINX_CONFIG_OPT} ]; then
+if [ -z ${NGINX_CONFIG_OPT_ENV} ]; then
   NGINX_CONFIG_OPT_ENV="--prefix=$(pwd)/build/nginx --with-http_ssl_module"
 
   if [ $(which brew) ]; then
