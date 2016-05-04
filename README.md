@@ -38,7 +38,7 @@ http {
     set $jwtap_cookie_name jwt;
     set $jwtap_expiration_duration_seconds 1800;
     set $jwtap_login_url https://accounts.example.com/login/;
-    set $jwtap_secret_key "Shh! It's a secret.";
+    set $jwtap_secret_key_base64 qtKX8fQzehDp8+7/385f8g==;
 
     # A web API location.
     location /api/ {
