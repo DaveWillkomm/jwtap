@@ -37,7 +37,7 @@ http {
         set $jwtap_cookie_name "<%= ENV['JWTAP_COOKIE_NAME'] %>";
         set $jwtap_expiration_duration_seconds "<%= ENV['JWTAP_EXPIRATION_DURATION_SECONDS'] %>";
         set $jwtap_login_url "<%= ENV['JWTAP_LOGIN_URL'] %>";
-        set $jwtap_secret_key "<%= ENV['JWTAP_SECRET_KEY'] %>";
+        set $jwtap_secret_key_base64 "<%= ENV['JWTAP_SECRET_KEY_BASE64'] %>";
 
         location <%= ENV['NGINX_LOCATION_TEST_API'] %> {
           mruby_access_handler <%= access_handler_path %>;
@@ -60,7 +60,7 @@ http {
           mruby_content_handler_code '
             var = Nginx::Var.new
             expiration = (Time.now + var.jwtap_expiration_duration_seconds.to_i).to_i
-            jwt = JWT.encode({ "exp" => expiration }, var.jwtap_secret_key, var.jwtap_algorithm)
+            jwt = JWT.encode({ "exp" => expiration }, Base64.decode(var.jwtap_secret_key_base64), var.jwtap_algorithm)
             response_headers = Nginx::Headers_out.new
 
             response_headers["Content-Type"] = "text/plain"

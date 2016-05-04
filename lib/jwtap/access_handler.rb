@@ -50,9 +50,10 @@ def process(var, request)
 
   if jwt
     begin
-      payload, _header = JWT.decode jwt, var.jwtap_secret_key, true, algorithm: var.jwtap_algorithm
+      secret_key = Base64.decode var.jwtap_secret_key_base64
+      payload, _header = JWT.decode jwt, secret_key, true, algorithm: var.jwtap_algorithm
       fail_request var, request unless payload['exp']
-      refreshed_jwt = refresh var, payload
+      refreshed_jwt = refresh var, payload, secret_key
 
       if bearer
         request.headers_out['Authorization-JWT-Refreshed'] = refreshed_jwt
@@ -69,10 +70,10 @@ def process(var, request)
   end
 end
 
-def refresh(var, payload)
+def refresh(var, payload, secret_key)
   refreshed_expiration = (Time.now + var.jwtap_expiration_duration_seconds.to_i).to_i
   refreshed_payload = payload.merge 'exp' => refreshed_expiration
-  JWT.encode refreshed_payload, var.jwtap_secret_key, var.jwtap_algorithm
+  JWT.encode refreshed_payload, secret_key, var.jwtap_algorithm
 end
 
 process Nginx::Var.new, Nginx::Request.new

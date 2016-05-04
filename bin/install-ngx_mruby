@@ -13,6 +13,7 @@ wget -O - https://github.com/matsumoto-r/ngx_mruby/archive/v$NGX_MRUBY_VERSION.t
 # Add mruby-jwt gem
 cd ngx_mruby-${NGX_MRUBY_VERSION}
 sed -i.bak "s/^end$/  conf.gem :github => 'prevs-io\/mruby-jwt'\\
+  conf.gem :github => 'mattn\/mruby-base64'\\
 end/" build_config.rb
 
 # Set config options
