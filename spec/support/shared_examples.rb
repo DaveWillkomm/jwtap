@@ -1,3 +1,4 @@
+require 'base64'
 require 'jwt'
 require 'rest-client'
 
@@ -13,7 +14,7 @@ shared_examples 'a proxied location' do |proxy_type|
   let(:jwt) { JWT.encode payload, secret_key, algorithm }
   let(:login_url) { options[:jwtap_login_url] }
   let(:payload) { { sub: 'test-subject', exp: expiration } }
-  let(:secret_key) { options[:jwtap_secret_key] }
+  let(:secret_key) { Base64.decode64 options[:jwtap_secret_key_base64] }
 
   context 'given no JWT' do
     it_behaves_like 'an unauthenticated request', proxy_type, :no_jwt
