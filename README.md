@@ -1,7 +1,7 @@
 # JSON Web Token Authentication Proxy
-JSON Web Token Authentication Proxy (jwtap) is an HTTP reverse proxy that provides authentication services, in concert
-with an external user authentication service, to both HTTP web applications and APIs. Jwtap is implemented as a Ruby
-script that runs in the context of [Nginx](http://nginx.org/) + [ngx_mruby](http://ngx.mruby.org/) + [mruby-jwt](https://github.com/prevs-io/mruby-jwt).
+JSON Web Token Authentication Proxy (jwtap, pronounced "jot app") is an HTTP reverse proxy that provides authentication
+services, in concert with an external user authentication service, to both HTTP web applications and APIs. Jwtap is
+implemented as a Ruby script that runs in the context of [Nginx](http://nginx.org/) + [ngx_mruby](http://ngx.mruby.org/) + [mruby-jwt](https://github.com/prevs-io/mruby-jwt).
 
 ![jwtap](doc/jwtap.png)
 # Unauthenticated Web API Request
