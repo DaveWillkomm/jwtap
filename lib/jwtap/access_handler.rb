@@ -29,7 +29,7 @@ def fail_request(var, request, invalid_token = true)
 end
 
 def login_url(var)
-  "#{var.jwtap_login_url}#{next_url var}"
+  "#{var.jwtap_login_url}#{HTTP::URL::encode(next_url var)}"
 end
 
 def next_url(var)

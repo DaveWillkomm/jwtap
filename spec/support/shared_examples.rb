@@ -1,4 +1,5 @@
 require 'base64'
+require 'cgi'
 require 'jwt'
 require 'rest-client'
 
@@ -89,7 +90,7 @@ shared_examples 'an unauthenticated request' do |proxy_type, jwt = :has_jwt|
     it 'redirects to the login URL' do
       RestClient.get url, headers do |response, _request, _result|
         expect(response.code).to eq(302)
-        expect(response.headers[:location]).to eq("#{login_url}#{url}")
+        expect(response.headers[:location]).to eq("#{login_url}#{CGI.escape url}")
       end
     end
 
@@ -97,7 +98,7 @@ shared_examples 'an unauthenticated request' do |proxy_type, jwt = :has_jwt|
       it 'redirects to the login URL with a next URL of the configured default' do
         RestClient.delete url, headers do |response, _request, _result|
           expect(response.code).to eq(302)
-          expect(response.headers[:location]).to eq("#{login_url}#{default_next_url}")
+          expect(response.headers[:location]).to eq("#{login_url}#{CGI.escape default_next_url}")
         end
       end
 
@@ -109,7 +110,7 @@ shared_examples 'an unauthenticated request' do |proxy_type, jwt = :has_jwt|
 
           RestClient.delete url, headers do |response, _request, _result|
             expect(response.code).to eq(302)
-            expect(response.headers[:location]).to eq("#{login_url}#{referrer}")
+            expect(response.headers[:location]).to eq("#{login_url}#{CGI.escape referrer}")
           end
         end
       end
