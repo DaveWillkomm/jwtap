@@ -54,6 +54,7 @@ def process(var, request)
       payload, _header = JWT.decode jwt, secret_key, true, algorithm: var.jwtap_algorithm
       fail_request var, request unless payload['exp']
       refreshed_jwt = refresh var, payload, secret_key
+      var.set 'jwtap_jwt_payload', JSON.generate(payload)
 
       if bearer
         request.headers_out['Authorization-JWT-Refreshed'] = refreshed_jwt

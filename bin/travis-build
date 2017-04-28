@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -ev
+set -evx
 
 # See https://docs.travis-ci.com/user/triggering-builds/.
 # You must log into Travis CI (travis login), generate an authorization token (travis token), and set it to the

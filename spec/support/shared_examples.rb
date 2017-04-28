@@ -17,6 +17,8 @@ shared_examples 'a proxied location' do |proxy_type|
   let(:payload) { { sub: 'test-subject', exp: expiration } }
   let(:secret_key) { Base64.decode64 options[:jwtap_secret_key_base64] }
 
+  subject { RestClient.get(url, headers) { |response, _request, _result| return response } }
+
   context 'given no JWT' do
     it_behaves_like 'an unauthenticated request', proxy_type, :no_jwt
   end
@@ -69,29 +71,35 @@ shared_examples 'unauthenticated requests' do |proxy_type|
 end
 
 shared_examples 'an authenticated request' do |jwt_location|
-  it 'proxies the request' do
-    RestClient.get url, headers do |response, _request, _result|
-      jwt = if jwt_location == :bearer
-        response.headers[:authorization_jwt_refreshed]
-      else
-        response.cookies[cookie_name]
-      end
-      payload, _header = JWT.decode jwt, secret_key, true, algorithm: algorithm
-
-      expect(response.code).to eq(200)
-      expect(payload['sub']).to eq('test-subject')
-      expect(payload['exp'].to_i).to be > expiration
+  let(:jwt_payload) do
+    jwt = if jwt_location == :bearer
+      subject.headers[:authorization_jwt_refreshed]
+    else
+      subject.cookies[cookie_name]
     end
+    payload, _header = JWT.decode jwt, secret_key, true, algorithm: algorithm
+    payload
+  end
+
+  it 'proxies the request' do
+    expect(subject.code).to eq(200)
+    expect(jwt_payload['sub']).to eq('test-subject')
+  end
+
+  it 'updates the expiration' do
+    expect(jwt_payload['exp'].to_i).to be > expiration
+  end
+
+  it 'sets $jwtap_jwt_payload' do
+    expect(JSON.parse(subject.headers[:x_jwtap_jwt_payload])).to include('sub' => 'test-subject', 'exp' => anything)
   end
 end
 
 shared_examples 'an unauthenticated request' do |proxy_type, jwt = :has_jwt|
   if proxy_type == :application
     it 'redirects to the login URL' do
-      RestClient.get url, headers do |response, _request, _result|
-        expect(response.code).to eq(302)
-        expect(response.headers[:location]).to eq("#{login_url}#{CGI.escape url}")
-      end
+      expect(subject.code).to eq(302)
+      expect(subject.headers[:location]).to eq("#{login_url}#{CGI.escape url}")
     end
 
     context 'given an unsafe HTTP method (i.e. non-GET)' do
@@ -117,17 +125,13 @@ shared_examples 'an unauthenticated request' do |proxy_type, jwt = :has_jwt|
     end
   elsif jwt == :has_jwt
     it 'returns a 401 with a WWW-Authenticate header including an invalid_token error code and login URL' do
-      RestClient.get url, headers do |response, _request, _result|
-        expect(response.code).to eq(401)
-        expect(response.headers[:www_authenticate]).to eq(%Q(Bearer error="invalid_token", login_url="#{login_url}"))
-      end
+      expect(subject.code).to eq(401)
+      expect(subject.headers[:www_authenticate]).to eq(%Q(Bearer error="invalid_token", login_url="#{login_url}"))
     end
   else
     it 'returns a 401 with a WWW-Authenticate header including a login URL' do
-      RestClient.get url, headers do |response, _request, _result|
-        expect(response.code).to eq(401)
-        expect(response.headers[:www_authenticate]).to eq(%Q(Bearer login_url="#{login_url}"))
-      end
+      expect(subject.code).to eq(401)
+      expect(subject.headers[:www_authenticate]).to eq(%Q(Bearer login_url="#{login_url}"))
     end
   end
 end
