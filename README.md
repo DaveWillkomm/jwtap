@@ -1,7 +1,7 @@
 # JSON Web Token Authentication Proxy
 JSON Web Token Authentication Proxy (jwtap, pronounced "jot app") is an HTTP reverse proxy that provides authentication
 services, in concert with an external user authentication service, to both HTTP web applications and APIs. Jwtap is
-implemented as a Ruby script that runs in the context of [Nginx](http://nginx.org/) + [ngx_mruby](http://ngx.mruby.org/) + [mruby-jwt](https://github.com/prevs-io/mruby-jwt).
+implemented as Ruby that runs in the context of [Nginx](http://nginx.org/) + [ngx_mruby](http://ngx.mruby.org/) + [mruby-jwt](https://github.com/prevs-io/mruby-jwt).
 
 ![jwtap](doc/jwtap.png)
 # Unauthenticated Web API Request
@@ -32,11 +32,14 @@ implemented as a Ruby script that runs in the context of [Nginx](http://nginx.or
 ```
 http {
   server {
-    # mruby-jwt currently only supports HS256
-    set $jwtap_algorithm HS256;
     set $jwtap_cookie_domain example.com;
+    
+    # Optional; default is "jwt"
     set $jwtap_cookie_name jwt;
+    
+    # Optional; default is 1800
     set $jwtap_expiration_duration_seconds 1800;
+    
     set $jwtap_login_url https://accounts.example.com/login/;
 
     # 256 bit secret key generated with openssl rand -base64 32
@@ -44,7 +47,7 @@ http {
 
     # A web API location.
     location /api/ {
-      mruby_access_handler /fully-qualified-path-to/jwtap/access_handler.rb cache;
+      mruby_access_handler /fully-qualified-path-to/jwtap.rb cache;
       proxy_pass https://api.example.net/;
     }
 
@@ -57,7 +60,7 @@ http {
       # header has not been provided.
       set $jwtap_default_next_url https://example.com/application/;
 
-      mruby_access_handler /fully-qualified-path-to/jwtap/access_handler.rb cache;
+      mruby_access_handler /fully-qualified-path-to/jwtap.rb cache;
       proxy_pass https://application.example.net/;
     }
   }

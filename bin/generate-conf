@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'erb'
 
-access_handler_path = File.expand_path '../lib/jwtap/access_handler.rb', __dir__
+access_handler_path = File.expand_path '../lib/jwtap.rb', __dir__
 destination_path = File.expand_path '../nginx/conf/nginx.conf', __dir__
 source_path = File.expand_path '../nginx/conf/nginx.conf.erb', __dir__
 

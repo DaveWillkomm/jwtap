@@ -4,7 +4,7 @@ require 'jwt'
 require 'rest-client'
 
 shared_examples 'a proxied location' do |proxy_type|
-  let(:algorithm) { options[:jwtap_algorithm] }
+  let(:algorithm) { 'HS256' }
   let(:authorization_header) { { Authorization: "#{authorization_schema}#{jwt}" } }
   let(:authorization_schema) { 'Bearer ' }
   let(:cookie_header) { { Cookie: "#{cookie_name}=#{jwt}" } }
