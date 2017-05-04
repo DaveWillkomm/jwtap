@@ -8,14 +8,14 @@ shared_examples 'a proxied location' do |proxy_type|
   let(:authorization_header) { { Authorization: "#{authorization_schema}#{jwt}" } }
   let(:authorization_schema) { 'Bearer ' }
   let(:cookie_header) { { Cookie: "#{cookie_name}=#{jwt}" } }
-  let(:cookie_name) { options[:jwtap_cookie_name] }
-  let(:default_next_url) { options[:jwtap_default_next_url] }
-  let(:expiration) { (Time.now + options[:jwtap_expiration_duration_seconds].to_i - 1).to_i }
+  let(:cookie_name) { options.jwtap_cookie_name }
+  let(:default_next_url) { options.jwtap_default_next_url }
+  let(:expiration) { (Time.now + options.jwtap_expiration_duration_seconds.to_i - 1).to_i }
   let(:headers) { {} }
   let(:jwt) { JWT.encode payload, secret_key, algorithm }
-  let(:login_url) { options[:jwtap_login_url] }
+  let(:login_url) { options.jwtap_login_url }
   let(:payload) { { sub: 'test-subject', exp: expiration } }
-  let(:secret_key) { Base64.decode64 options[:jwtap_secret_key_base64] }
+  let(:secret_key) { Base64.decode64 options.jwtap_secret_key_base64 }
 
   subject { RestClient.get(url, headers) { |response, _request, _result| return response } }
 
@@ -43,7 +43,7 @@ shared_examples 'a proxied location' do |proxy_type|
     it_behaves_like 'unauthenticated requests', proxy_type
 
     context 'given an invalid cookie name' do
-      let(:cookie_name) { "not-the-#{options[:jwtap_cookie_name]}" }
+      let(:cookie_name) { "not-the-#{options.jwtap_cookie_name}" }
 
       it_behaves_like 'an unauthenticated request', proxy_type, :no_jwt
     end
@@ -64,7 +64,7 @@ shared_examples 'unauthenticated requests' do |proxy_type|
   end
 
   context 'given an invalid JWT' do
-    let(:secret_key) { "not-the-#{options[:jwtap_secret_key]}" }
+    let(:secret_key) { "not-the-#{options.jwtap_secret_key}" }
 
     it_behaves_like 'an unauthenticated request', proxy_type
   end

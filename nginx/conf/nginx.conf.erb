@@ -40,7 +40,7 @@ http {
         set $jwtap_secret_key_base64 "<%= ENV['JWTAP_SECRET_KEY_BASE64'] %>";
 
         location <%= ENV['NGINX_LOCATION_TEST_API'] %> {
-          mruby_access_handler <%= access_handler_path %>;
+          mruby_access_handler <%= jwtap_path %>;
           add_header X-jwtap-jwt-payload "$jwtap_jwt_payload";
           proxy_pass http://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
         }
@@ -49,8 +49,14 @@ http {
           set $jwtap_proxy_type application;
           set $jwtap_default_next_url "<%= ENV['JWTAP_DEFAULT_NEXT_URL'] %>";
 
-          mruby_access_handler <%= access_handler_path %>;
+          mruby_access_handler <%= jwtap_path %>;
           add_header X-jwtap-jwt-payload "$jwtap_jwt_payload";
+          proxy_pass http://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
+        }
+
+        location <%= ENV['NGINX_LOCATION_TEST_PATHS'] %> {
+          set $mruby_directive_paths "<%= jwtap_path %> <%= jwtap_jwt_payload_consumer_path %>";
+          mruby_access_handler "<%= mruby_directive_paths_path %>";
           proxy_pass http://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
         }
 
@@ -60,7 +66,7 @@ http {
 
         location /set-cookie {
           mruby_content_handler_code '
-            var = Nginx::Var.new
+            var = Nginx::Request.new.var
             expiration = (Time.now + var.jwtap_expiration_duration_seconds.to_i).to_i
             jwt = JWT.encode({ "exp" => expiration }, Base64.decode(var.jwtap_secret_key_base64), var.jwtap_algorithm)
             response_headers = Nginx::Headers_out.new
@@ -75,7 +81,7 @@ http {
         location /delete-cookie {
           mruby_content_handler_code '
             response_headers = Nginx::Headers_out.new
-            var = Nginx::Var.new
+            var = Nginx::Request.new.var
 
             response_headers["Content-Type"] = "text/plain"
             response_headers["Set-Cookie"] =
