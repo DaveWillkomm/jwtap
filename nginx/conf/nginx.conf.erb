@@ -68,7 +68,7 @@ http {
           mruby_content_handler_code '
             var = Nginx::Request.new.var
             expiration = (Time.now + var.jwtap_expiration_duration_seconds.to_i).to_i
-            jwt = JWT.encode({ "exp" => expiration }, Base64.decode(var.jwtap_secret_key_base64), var.jwtap_algorithm)
+            jwt = JWT.encode({ "exp" => expiration }, Base64.decode(var.jwtap_secret_key_base64), "HS256")
             response_headers = Nginx::Headers_out.new
 
             response_headers["Content-Type"] = "text/plain"
