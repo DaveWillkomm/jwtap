@@ -1,0 +1,15 @@
+/var/opt/log/jwtap/access.log {
+  daily
+  copytruncate
+  compress
+  create
+  rotate 10
+}
+
+/var/opt/log/jwtap/error.log {
+  daily
+  copytruncate
+  compress
+  create
+  rotate 10
+}

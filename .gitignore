@@ -1,4 +1,9 @@
-nginx/conf/nginx.conf
-nginx/logs/*.*
-vendor/ngx_mruby-*/
-vendor/v*.tar.gz
+/.vagrant/
+/nginx/conf/nginx.conf
+/nginx/logs/*.*
+/rpmbuild/BUILD/
+/rpmbuild/BUILDROOT/
+/rpmbuild/RPMS/
+/rpmbuild/SRPMS/
+/vendor/ngx_mruby-*/
+/vendor/v*.tar.gz

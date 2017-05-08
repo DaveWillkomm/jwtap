@@ -1,22 +1,16 @@
 #!/usr/bin/env bash
 set -evx
 
-source .ngx_mruby-version
-
 # Clean
 cd vendor
 rm -fr ngx_mruby-*
 
-# Get source
-wget -O - https://github.com/matsumoto-r/ngx_mruby/archive/v$NGX_MRUBY_VERSION.tar.gz | tar xzf -
+# Decompress source
+tar xzf ../rpmbuild/SOURCES/ngx_mruby-*.tar.gz
 
-# Add mruby-jwt gem
-cd ngx_mruby-${NGX_MRUBY_VERSION}
-sed -i.bak "s/^end$/  conf.gem :github => 'iij\/mruby-require'\\
-  conf.gem :github => 'mattn\/mruby-base64'\\
-  conf.gem :github => 'mattn\/mruby-http'\\
-  conf.gem :github => 'prevs-io\/mruby-jwt'\\
-end/" build_config.rb
+# Add gems
+cd ngx_mruby-*
+../../bin/add_gems.sh
 
 # Set config options
 if [ -z ${NGINX_CONFIG_OPT_ENV} ]; then
