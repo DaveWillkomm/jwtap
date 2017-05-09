@@ -1,79 +1,96 @@
-def bearer(request)
-  authorization = request.headers_in['Authorization']
-  if authorization
-    match = /^Bearer (\S+)$/.match authorization
-    bearer = match[1] if match
-  end
+module Jwtap
+  class AccessHandler
+    JWT_ALGORITHM = 'HS256'
 
-  bearer
-end
-
-def cookie(var)
-  cookies = cookies var
-  cookie = cookies[var.jwtap_cookie_name] if cookies
-  cookie
-end
-
-def cookies(var)
-  Hash[var.http_cookie.split('; ').map { |s| s.split('=', 2) }] if var.http_cookie
-end
-
-def fail_request(var, request, invalid_token = true)
-  if var.jwtap_proxy_type == 'application'
-    Nginx.redirect login_url(var)
-  else
-    error = invalid_token ? 'error="invalid_token", ' : nil
-    request.headers_out['WWW-Authenticate'] = %Q(Bearer #{error}login_url="#{var.jwtap_login_url}")
-    Nginx.return  Nginx::HTTP_UNAUTHORIZED
-  end
-end
-
-def login_url(var)
-  "#{var.jwtap_login_url}#{HTTP::URL::encode(next_url var)}"
-end
-
-def next_url(var)
-  port = %w(80 443).include?(var.server_port) ? nil : ":#{var.server_port}"
-  next_url = if var.request_method == 'GET'
-    "#{var.scheme}://#{var.host}#{port}#{var.request_uri}"
-  else
-    var.http_referer || var.jwtap_default_next_url
-  end
-
-  next_url
-end
-
-def process(var, request)
-  bearer = bearer request
-  cookie = cookie var
-  jwt = bearer || cookie
-
-  if jwt
-    begin
-      secret_key = Base64.decode var.jwtap_secret_key_base64
-      payload, _header = JWT.decode jwt, secret_key, true, algorithm: var.jwtap_algorithm
-      fail_request var, request unless payload['exp']
-      refreshed_jwt = refresh var, payload, secret_key
-
-      if bearer
-        request.headers_out['Authorization-JWT-Refreshed'] = refreshed_jwt
-      elsif cookie
-        request.headers_out['Set-Cookie'] =
-          "#{var.jwtap_cookie_name}=#{refreshed_jwt}; Domain=#{var.jwtap_cookie_domain}; Path=/;"
-      end
-    rescue JWT::DecodeError, JWT::ExpiredSignature => e
-      Nginx.errlogger Nginx::LOG_DEBUG, e
-      fail_request var, request
+    def initialize(request)
+      @request = request
     end
-  else
-    fail_request var, request, false
+
+    def process
+      if jwt
+        begin
+          secret_key = Base64.decode @request.var.jwtap_secret_key_base64
+          payload, _header = JWT.decode jwt, secret_key, true, algorithm: JWT_ALGORITHM
+          fail_request unless payload['exp']
+          refreshed_jwt = refresh payload, secret_key
+          @request.var.set 'jwtap_jwt_payload', JSON.generate(payload)
+
+          if bearer
+            @request.headers_out['Authorization-JWT-Refreshed'] = refreshed_jwt
+          elsif cookie
+            @request.headers_out['Set-Cookie'] =
+              "#{cookie_name}=#{refreshed_jwt}; Domain=#{@request.var.jwtap_cookie_domain}; Path=/;"
+          end
+        rescue JWT::DecodeError, JWT::ExpiredSignature => e
+          Nginx.log Nginx::LOG_DEBUG, e
+          fail_request
+        end
+      else
+        fail_request false
+      end
+    end
+
+    private
+
+    def bearer
+      authorization = @request.headers_in['Authorization']
+      if authorization
+        match = /^Bearer (\S+)$/.match authorization
+        bearer = match[1] if match
+      end
+
+      bearer
+    end
+
+    def cookie
+      cookies[cookie_name] if cookies
+    end
+
+    def cookie_name
+      @request.var.jwtap_cookie_name || 'jwt'
+    end
+
+    def cookies
+      Hash[@request.var.http_cookie.split('; ').map { |s| s.split('=', 2) }] if @request.var.http_cookie
+    end
+
+    def expiration_duration_seconds
+      @request.var.jwtap_expiration_duration_seconds || 1800
+    end
+
+    def fail_request(invalid_token = true)
+      if @request.var.jwtap_proxy_type == 'application'
+        Nginx.redirect login_url
+      else
+        error = invalid_token ? 'error="invalid_token", ' : nil
+        @request.headers_out['WWW-Authenticate'] = %Q(Bearer #{error}login_url="#{@request.var.jwtap_login_url}")
+        Nginx.return  Nginx::HTTP_UNAUTHORIZED
+      end
+    end
+
+    def jwt
+      bearer || cookie
+    end
+
+    def login_url
+      "#{@request.var.jwtap_login_url}#{HTTP::URL::encode(next_url)}"
+    end
+
+    def next_url
+      port = %w(80 443).include?(@request.var.server_port) ? nil : ":#{@request.var.server_port}"
+      next_url = if @request.var.request_method == 'GET'
+        "#{@request.var.scheme}://#{@request.var.host}#{port}#{@request.var.request_uri}"
+      else
+        @request.var.http_referer || @request.var.jwtap_default_next_url
+      end
+
+      next_url
+    end
+
+    def refresh(payload, secret_key)
+      refreshed_expiration = (Time.now + expiration_duration_seconds.to_i).to_i
+      refreshed_payload = payload.merge 'exp' => refreshed_expiration
+      JWT.encode refreshed_payload, secret_key, JWT_ALGORITHM
+    end
   end
 end
-
-def refresh(var, payload, secret_key)
-  refreshed_expiration = (Time.now + var.jwtap_expiration_duration_seconds.to_i).to_i
-  refreshed_payload = payload.merge 'exp' => refreshed_expiration
-  JWT.encode refreshed_payload, secret_key, var.jwtap_algorithm
-end
-
-process Nginx::Var.new, Nginx::Request.new

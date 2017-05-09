@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -evx
 
 source .ngx_mruby-version
 vendor/ngx_mruby-${NGX_MRUBY_VERSION}/build/nginx/sbin/nginx -p nginx "$@"

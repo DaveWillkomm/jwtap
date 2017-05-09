@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -ev
+set -evx
 
 source .ngx_mruby-version
 
@@ -12,9 +12,10 @@ wget -O - https://github.com/matsumoto-r/ngx_mruby/archive/v$NGX_MRUBY_VERSION.t
 
 # Add mruby-jwt gem
 cd ngx_mruby-${NGX_MRUBY_VERSION}
-sed -i.bak "s/^end$/  conf.gem :github => 'prevs-io\/mruby-jwt'\\
+sed -i.bak "s/^end$/  conf.gem :github => 'iij\/mruby-require'\\
   conf.gem :github => 'mattn\/mruby-base64'\\
   conf.gem :github => 'mattn\/mruby-http'\\
+  conf.gem :github => 'prevs-io\/mruby-jwt'\\
 end/" build_config.rb
 
 # Set config options
