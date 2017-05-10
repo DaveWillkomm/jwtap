@@ -35,13 +35,13 @@ cd %{builddir_ngx_mruby}
 cd %{builddir_ngx_mruby}
 options="
   --build=%{name}
-  --conf-path=%{_sysconfdir}/opt/%{name}/%{name}.conf
-  --error-log-path=%{_localstatedir}/opt/log/%{name}/error.log
+  --conf-path=%{_sysconfdir}/%{name}/%{name}.conf
+  --error-log-path=%{_localstatedir}/log/%{name}/error.log
   --group=%{name}
-  --http-log-path=%{_localstatedir}/opt/log/%{name}/access.log
+  --http-log-path=%{_localstatedir}/log/%{name}/access.log
   --pid-path=/run/%{name}.pid
   --prefix=/opt/%{name}
-  --sbin-path=/opt/sbin/%{name}
+  --sbin-path=sbin/%{name}
   --user=%{name}
   --with-http_ssl_module"
 NGINX_CONFIG_OPT_ENV="$(echo ${options})" sh build.sh
@@ -60,11 +60,11 @@ install %{SOURCE2} %{buildroot}%{_unitdir}
 
 %files
 %attr(-, %{name}, %{name}) /opt/%{name}
+%config %{_sysconfdir}/%{name}/*
 %config %{_sysconfdir}/logrotate.d/%{name}
-%config %{_sysconfdir}/opt/%{name}/*
-%{_localstatedir}/opt/log/%{name}
+%{_localstatedir}/log/%{name}
 %{_unitdir}/%{name}.service
-/opt/sbin/%{name}
+/opt/%{name}/sbin/%{name}
 
 
 %pre
@@ -75,6 +75,5 @@ getent passwd %{name} > /dev/null || \
 
 %post
 /usr/bin/systemctl daemon-reload
-/usr/bin/systemctl restart rsyslog.service
 
 %changelog

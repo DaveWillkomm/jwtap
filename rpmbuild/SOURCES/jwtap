@@ -1,4 +1,4 @@
-/var/opt/log/jwtap/access.log {
+/var/log/jwtap/access.log {
   daily
   copytruncate
   compress
@@ -6,7 +6,7 @@
   rotate 10
 }
 
-/var/opt/log/jwtap/error.log {
+/var/log/jwtap/error.log {
   daily
   copytruncate
   compress

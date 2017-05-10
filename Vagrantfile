@@ -14,6 +14,7 @@ Vagrant.configure('2') do |config|
   end
 
   config.vm.define 'test', autostart: false do |test|
+    test.vm.network 'forwarded_port', auto_correct: true, guest: 80, host: 8765
     test.vm.provision 'shell', path: 'bin/test/provision.sh'
     test.vm.synced_folder '.', '/vagrant', disabled: true
   end
