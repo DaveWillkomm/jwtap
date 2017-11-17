@@ -7,7 +7,7 @@ shared_examples 'a proxied location' do |proxy_type|
   let(:algorithm) { 'HS256' }
   let(:authorization_header) { { Authorization: "#{authorization_schema}#{jwt}" } }
   let(:authorization_schema) { 'Bearer ' }
-  let(:cookie_header) { { Cookie: "#{cookie_name}=#{jwt}" } }
+  let(:cookie_header) { { Cookie: "#{cookie_name}=#{jwt};" } }
   let(:cookie_name) { options.jwtap_cookie_name }
   let(:default_next_url) { options.jwtap_default_next_url }
   let(:expiration) { (Time.now + options.jwtap_expiration_duration_seconds.to_i - 1).to_i }
@@ -15,9 +15,10 @@ shared_examples 'a proxied location' do |proxy_type|
   let(:jwt) { JWT.encode payload, secret_key, algorithm }
   let(:login_url) { options.jwtap_login_url }
   let(:payload) { { sub: 'test-subject', exp: expiration } }
+  let(:request_options) { { method: :get, url: url, headers: headers, verify_ssl: OpenSSL::SSL::VERIFY_NONE } }
   let(:secret_key) { Base64.decode64 options.jwtap_secret_key_base64 }
 
-  subject { RestClient.get(url, headers) { |response, _request, _result| return response } }
+  subject { RestClient::Request.execute(request_options) { |response, _request, _result| return response } }
 
   context 'given no JWT' do
     it_behaves_like 'an unauthenticated request', proxy_type, :no_jwt
@@ -87,11 +88,19 @@ shared_examples 'an authenticated request' do |jwt_location|
   end
 
   it 'updates the expiration' do
+    # binding.pry
     expect(jwt_payload['exp'].to_i).to be > expiration
   end
 
   it 'sets $jwtap_jwt_payload' do
     expect(JSON.parse(subject.headers[:x_jwtap_jwt_payload])).to include('sub' => 'test-subject', 'exp' => anything)
+  end
+
+  if jwt_location == :cookie
+    it 'sets the "Secure" flag on the jwt cookie' do
+      set_cookie_header = subject.headers[:set_cookie].first
+      expect(set_cookie_header.downcase.include?("secure")).to be true
+    end
   end
 end
 
@@ -103,8 +112,10 @@ shared_examples 'an unauthenticated request' do |proxy_type, jwt = :has_jwt|
     end
 
     context 'given an unsafe HTTP method (i.e. non-GET)' do
+      let(:request_options) { { method: :delete, url: url, headers: headers, verify_ssl: OpenSSL::SSL::VERIFY_NONE } }
+
       it 'redirects to the login URL with a next URL of the configured default' do
-        RestClient.delete url, headers do |response, _request, _result|
+        RestClient::Request.execute(request_options) do |response, _request, _result|
           expect(response.code).to eq(302)
           expect(response.headers[:location]).to eq("#{login_url}#{CGI.escape default_next_url}")
         end
@@ -115,8 +126,9 @@ shared_examples 'an unauthenticated request' do |proxy_type, jwt = :has_jwt|
 
         it 'redirects to the login URL with a next URL of the referrer' do
           headers.merge! Referer: referrer
+          request_options = { method: :delete, url: url, headers: headers, verify_ssl: OpenSSL::SSL::VERIFY_NONE }
 
-          RestClient.delete url, headers do |response, _request, _result|
+          RestClient::Request.execute(request_options) do |response, _request, _result|
             expect(response.code).to eq(302)
             expect(response.headers[:location]).to eq("#{login_url}#{CGI.escape referrer}")
           end
