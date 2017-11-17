@@ -19,7 +19,7 @@ module Jwtap
             @request.headers_out['Authorization-JWT-Refreshed'] = refreshed_jwt
           elsif cookie
             @request.headers_out['Set-Cookie'] =
-              "#{cookie_name}=#{refreshed_jwt}; Domain=#{@request.var.jwtap_cookie_domain}; Path=/;"
+              "#{cookie_name}=#{refreshed_jwt}; Domain=#{@request.var.jwtap_cookie_domain}; Path=/; Secure;"
           end
         rescue JWT::DecodeError, JWT::ExpiredSignature => e
           Nginx.log Nginx::LOG_DEBUG, e

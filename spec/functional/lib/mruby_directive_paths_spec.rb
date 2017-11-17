@@ -8,12 +8,13 @@ describe 'mruby_directive_paths' do
   let(:jwt) { JWT.encode payload, secret_key, 'HS256' }
   let(:options) { OpenStruct.new(ENV.inject({}) { |h, (k, v)| h.tap { |h| h[k.downcase.to_sym] = v } }) }
   let(:payload) { { sub: 'mruby_directive_paths', exp: expiration } }
+  let(:request_options) { { method: :get, url: url, headers: headers, verify_ssl: OpenSSL::SSL::VERIFY_NONE } }
   let(:secret_key) { Base64.decode64 options.jwtap_secret_key_base64 }
   let(:url) do
-    "http://#{options.nginx_server_name}:#{options.nginx_server_port}#{options.nginx_location_test_paths}"
+    "https://#{options.nginx_server_name}:#{options.nginx_server_port}#{options.nginx_location_test_paths}"
   end
 
-  subject { RestClient.get(url, headers) { |response, _request, _result| return response } }
+  subject { RestClient::Request.execute(request_options) { |response, _request, _result| return response } }
 
   it 'executes scripts in order' do
     expect(JSON.parse(subject.headers[:x_mruby_directive_paths])).to include('sub' => 'mruby_directive_paths')

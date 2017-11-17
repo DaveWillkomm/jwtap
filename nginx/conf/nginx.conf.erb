@@ -14,10 +14,12 @@ http {
     #tcp_nopush     on;
 
     #keepalive_timeout  0;
-    keepalive_timeout  65;
+    keepalive_timeout  	    65;
+    ssl_certificate         <%= ssl_cert_path %>;
+    ssl_certificate_key     <%= ssl_key_path %>;
 
     server {
-        listen       <%= ENV['NGINX_SERVER_PORT'] %>;
+        listen       <%= ENV['NGINX_SERVER_PORT'] %> ssl;
         server_name  <%= ENV['NGINX_SERVER_NAME'] %>;
 
         location / {
@@ -42,7 +44,7 @@ http {
         location <%= ENV['NGINX_LOCATION_TEST_API'] %> {
           mruby_access_handler <%= jwtap_path %>;
           add_header X-jwtap-jwt-payload "$jwtap_jwt_payload";
-          proxy_pass http://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
+          proxy_pass https://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
         }
 
         location <%= ENV['NGINX_LOCATION_TEST_APPLICATION'] %> {
@@ -51,13 +53,13 @@ http {
 
           mruby_access_handler <%= jwtap_path %>;
           add_header X-jwtap-jwt-payload "$jwtap_jwt_payload";
-          proxy_pass http://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
+          proxy_pass https://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
         }
 
         location <%= ENV['NGINX_LOCATION_TEST_PATHS'] %> {
           set $mruby_directive_paths "<%= jwtap_path %> <%= jwtap_jwt_payload_consumer_path %>";
           mruby_access_handler "<%= mruby_directive_paths_path %>";
-          proxy_pass http://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
+          proxy_pass https://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
         }
 
         location /test-proxy/ {

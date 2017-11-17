@@ -87,11 +87,11 @@ source .env.test
 bin/generate-conf
 bin/nginx
 ```
-Jwtap is now accessible via `http://localhost:8765/`. A faux API is available via `http://localhost:8765/test-api/`, and
-a faux application is available via `http://localhost:8765/test-application/`. At this point requesting `/test-api/`
+Jwtap is now accessible via `https://localhost:8765/`. A faux API is available via `https://localhost:8765/test-api/`, and
+a faux application is available via `https://localhost:8765/test-application/`. At this point requesting `/test-api/`
 will return a 401, and requesting `/test-application/` will redirect to a pseudo log in page. By requesting
-`http://localhost:8765/set-cookie/` and then requesting the API or application location, a "Hello, proxy World!" page is
-returned. Request `http://locaion:8765/delete-cookie/` to delete the cookie.
+`https://localhost:8765/set-cookie/` and then requesting the API or application location, a "Hello, proxy World!" page is
+returned. Request `https://locaion:8765/delete-cookie/` to delete the cookie.
 
 # References
 * [jwt.io](https://jwt.io/)

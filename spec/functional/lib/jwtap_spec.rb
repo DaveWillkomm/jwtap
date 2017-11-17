@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'ostruct'
 
 describe 'jwtap' do
-  let(:nginx_url) { "http://#{options.nginx_server_name}:#{options.nginx_server_port}" }
+  let(:nginx_url) { "https://#{options.nginx_server_name}:#{options.nginx_server_port}" }
   let(:options) { OpenStruct.new(ENV.inject({}) { |h, (k, v)| h.tap { |h| h[k.downcase.to_sym] = v } }) }
 
   context 'given an API proxy' do
