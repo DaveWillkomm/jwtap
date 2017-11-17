@@ -88,7 +88,6 @@ shared_examples 'an authenticated request' do |jwt_location|
   end
 
   it 'updates the expiration' do
-    # binding.pry
     expect(jwt_payload['exp'].to_i).to be > expiration
   end
 
