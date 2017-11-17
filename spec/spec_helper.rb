@@ -5,4 +5,3 @@ if ENV['RM_INFO']
 end
 
 require 'support/shared_examples'
-require 'pry'
