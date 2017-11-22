@@ -2,6 +2,6 @@ language: ruby
 
 before_script:
 - source .env.test
-- bin/generate-conf
-- bin/install-ngx_mruby
-- bin/nginx
+- bin/generate_conf.rb
+- bin/install_ngx_mruby.sh
+- bin/nginx.sh

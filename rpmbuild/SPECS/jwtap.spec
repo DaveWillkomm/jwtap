@@ -1,10 +1,10 @@
 Name:          jwtap
-Version:       1.1.0
+Version:       1.2.0
 Release:       %{?release_number}%{!?release_number:1}%{?dist}
 Summary:       JSON Web Token Authentication Proxy
 License:       MIT
 URL:           https://github.com/DaveWillkomm/%{name}
-%global        ngx_mruby_version 1.19.4
+%global        ngx_mruby_version 1.20.1
 Source0:       https://github.com/matsumotory/ngx_mruby/archive/v%{ngx_mruby_version}.tar.gz#/ngx_mruby-%{ngx_mruby_version}.tar.gz
 Source1:       jwtap
 Source2:       jwtap.service

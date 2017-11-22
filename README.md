@@ -78,20 +78,31 @@ brew install jwtap
 Once installed, edit `nginx.conf` using the above example as a guide.
 
 # Hack on It!
-Most of these scripts only change things local to the project; however, `bin/install-ngx_mruby` will install OpenSSL via
-Homebrew. Please read the scripts before running them.
+Most of these scripts only change things local to the project; however, `bin/install_ngx_mruby.sh` will install OpenSSL
+via Homebrew. Please read the scripts before running them.
 ```
 git clone https://github.com/dinosaurjr10/jwtap.git
-bin/install-ngx_mruby
+bin/install_ngx_mruby.sh
 source .env.test
-bin/generate-conf
-bin/nginx
+bin/generate_conf.rb
+bin/nginx.sh
 ```
 Jwtap is now accessible via `https://localhost:8765/`. A faux API is available via `https://localhost:8765/test-api/`, and
 a faux application is available via `https://localhost:8765/test-application/`. At this point requesting `/test-api/`
 will return a 401, and requesting `/test-application/` will redirect to a pseudo log in page. By requesting
 `https://localhost:8765/set-cookie/` and then requesting the API or application location, a "Hello, proxy World!" page is
 returned. Request `https://locaion:8765/delete-cookie/` to delete the cookie.
+
+# Package It!
+`rpmbuild/SPECS/jwtap.spec` defines a CentOS RPM spec file. It can be developed and tested on a macOS host using the
+following scripts (please read these scripts before running them):
+```
+bin/setup.sh
+bin/buildrpm.sh
+bin/installrpm.sh
+```
+`Vagrantfile` forwards port 80 on the `test` VM to port 8765 on the host OS. Starting `jwtap` on the `test` VM via
+`sudo service jwtap start` will make it accessible on these ports.
 
 # References
 * [jwt.io](https://jwt.io/)
