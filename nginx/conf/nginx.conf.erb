@@ -1,6 +1,6 @@
-worker_processes  1;
+worker_processes  auto;
 
-error_log  logs/error.log  debug;
+error_log  logs/error.log  warn;
 
 events {
     worker_connections  256;
@@ -34,7 +34,7 @@ http {
             root   html;
         }
 
-        set $jwtap_cookie_domain "<%= ENV['JWTAP_COOKIE_DOMAIN'] %>";
+        set $jwtap_cookie_domain "<%= ENV['JWTAP_SERVER_NAME'] %>";
         set $jwtap_cookie_name "<%= ENV['JWTAP_COOKIE_NAME'] %>";
         set $jwtap_expiration_duration_seconds "<%= ENV['JWTAP_EXPIRATION_DURATION_SECONDS'] %>";
         set $jwtap_jwt_payload "";
@@ -42,23 +42,23 @@ http {
         set $jwtap_secret_key_base64 "<%= ENV['JWTAP_SECRET_KEY_BASE64'] %>";
 
         location <%= ENV['NGINX_LOCATION_TEST_API'] %> {
-          mruby_access_handler <%= jwtap_path %>;
+          mruby_access_handler <%= jwtap_path %> cache;
           add_header X-jwtap-jwt-payload "$jwtap_jwt_payload";
-          proxy_pass https://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
+          proxy_pass $scheme://$server_name:$server_port/test-proxy/;
         }
 
         location <%= ENV['NGINX_LOCATION_TEST_APPLICATION'] %> {
           set $jwtap_proxy_type application;
           set $jwtap_default_next_url "<%= ENV['JWTAP_DEFAULT_NEXT_URL'] %>";
 
-          mruby_access_handler <%= jwtap_path %>;
+          mruby_access_handler <%= jwtap_path %> cache;
           add_header X-jwtap-jwt-payload "$jwtap_jwt_payload";
-          proxy_pass https://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
+          proxy_pass $scheme://$server_name:$server_port/test-proxy/;
         }
 
         location <%= ENV['NGINX_LOCATION_TEST_PATHS'] %> {
           set $mruby_directive_paths "<%= jwtap_path %> <%= jwtap_jwt_payload_consumer_path %>";
-          mruby_access_handler "<%= mruby_directive_paths_path %>";
+          mruby_access_handler "<%= mruby_directive_paths_path %>" cache;
           proxy_pass https://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
         }
 
