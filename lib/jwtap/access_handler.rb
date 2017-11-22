@@ -13,7 +13,7 @@ module Jwtap
           payload, _header = JWT.decode jwt, secret_key, true, algorithm: JWT_ALGORITHM
           fail_request unless payload['exp']
           refreshed_jwt = refresh payload, secret_key
-          @request.var.set 'jwtap_jwt_payload', JSON.generate(payload)
+          @request.var.set 'jwtap_jwt_payload', JSON.generate(payload) if @request.var.jwtap_jwt_payload
 
           if bearer
             @request.headers_out['Authorization-JWT-Refreshed'] = refreshed_jwt

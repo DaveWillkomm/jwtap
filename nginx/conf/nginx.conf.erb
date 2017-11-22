@@ -59,6 +59,9 @@ http {
         location <%= ENV['NGINX_LOCATION_TEST_PATHS'] %> {
           set $mruby_directive_paths "<%= jwtap_path %> <%= jwtap_jwt_payload_consumer_path %>";
           mruby_access_handler "<%= mruby_directive_paths_path %>" cache;
+
+          #TODO why doesnt this work
+          #TODO proxy_pass $scheme://$host:$server_port/test-proxy/;
           proxy_pass https://<%= ENV['NGINX_SERVER_NAME'] %>:<%= ENV['NGINX_SERVER_PORT'] %>/test-proxy/;
         }
 
